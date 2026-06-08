@@ -1,0 +1,1 @@
+class hanya bisa inherit 1 to prevent diamond problem
