@@ -20,9 +20,9 @@ public class Pembeli
         _totalPembeli++;
     }
 
-    public void MembeliBarang(PilihanBarang namaBarang, int jumlahBeli)
+    public void MembeliBarang(IBarang namaBarang, int jumlahBeli)
     {
-        if (!Enum.IsDefined(typeof(PilihanBarang), namaBarang))
+        if (namaBarang == null)
         {
             Console.WriteLine("Barang tidak valid!");
             return;
@@ -38,18 +38,6 @@ public class Pembeli
             
         _totalBarangDibeli += jumlahBeli;
 
-        switch (namaBarang)
-        {
-            case PilihanBarang.MinyakGoreng:
-                MinyakGoreng minyakGoreng = new MinyakGoreng();
-                minyakGoreng.Dibeli(jumlahBeli);
-                break;
-            case PilihanBarang.Beras:
-                Beras beras = new Beras();
-                beras.Dibeli(jumlahBeli);
-                break;
-            default:
-                break;
-        }
+        namaBarang.Dibeli(jumlahBeli);
     }
 }

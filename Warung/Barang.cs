@@ -8,6 +8,7 @@ public enum PilihanBarang
 
 public interface IBarang
 {
+    string Name { get; }
     int Harga { get; }
     int JumlahStok { get; }
     void Dibeli(int jumlah);
@@ -15,6 +16,7 @@ public interface IBarang
 
 public class MinyakGoreng : IBarang
 {
+    public string Name => "Minyak Goreng";
     public int Harga => 15000;
 
     private static int _jumlahStok = 10;
@@ -35,6 +37,7 @@ public class MinyakGoreng : IBarang
 
 public class Beras : IBarang
 {
+    public string Name => "Beras";
     public int Harga => 25000;
 
     private static int _jumlahStok = 20;
@@ -51,4 +54,14 @@ public class Beras : IBarang
             Console.WriteLine("Stok kurang!");
         }
     }
+}
+
+public static class BarangFactory
+{
+    public static IBarang Create(PilihanBarang pilihan) => pilihan switch
+    {
+        PilihanBarang.MinyakGoreng => new MinyakGoreng(),
+        PilihanBarang.Beras => new Beras(),
+        _ => throw new ArgumentException("Invalid barang type", nameof(pilihan))
+    };
 }
