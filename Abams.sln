@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Warung", "Warung\Warung.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp3", "ConsoleApp3\ConsoleApp3.csproj", "{D0CBF351-C188-4FB9-91E3-436367DBBC28}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pokemon", "Pokemon\Pokemon.csproj", "{CEFD15A9-6A79-40A6-89F8-298B3EC9619D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,6 +34,10 @@ Global
 		{D0CBF351-C188-4FB9-91E3-436367DBBC28}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D0CBF351-C188-4FB9-91E3-436367DBBC28}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D0CBF351-C188-4FB9-91E3-436367DBBC28}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CEFD15A9-6A79-40A6-89F8-298B3EC9619D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CEFD15A9-6A79-40A6-89F8-298B3EC9619D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CEFD15A9-6A79-40A6-89F8-298B3EC9619D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CEFD15A9-6A79-40A6-89F8-298B3EC9619D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
