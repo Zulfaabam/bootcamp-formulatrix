@@ -56,4 +56,33 @@ public static class TypeChart
     [PokemonType.Flying] = [PokemonType.Ground],
     [PokemonType.Ground] = [PokemonType.Electric]
   };
+
+  public static double GetMultiplier(PokemonType attackType, PokemonType defenderType)
+  {
+    if( Immunities.TryGetValue(defenderType, out PokemonType[]? immunities) )
+    {
+      if( immunities.Contains(attackType) )
+      {
+        return 0.0;
+      }
+    }
+
+    if( Weaknesses.TryGetValue(defenderType, out PokemonType[]? weaknesses) )
+    {
+      if( weaknesses.Contains(attackType) )
+      {
+        return 2.0;
+      }
+    }
+
+    if( Resistances.TryGetValue(defenderType, out PokemonType[]? resistances) )
+    {
+      if( resistances.Contains(attackType) )
+      {
+        return 0.5;
+      }
+    }
+
+    return 1.0;
+  }
 }

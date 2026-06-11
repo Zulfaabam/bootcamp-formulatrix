@@ -100,8 +100,10 @@ ex: int.TryParse()
 enumeration: proses utk menjelajahi sebuah collection
 iterator: struct lang nya biar enumerations gampang, pake yield
 
-enumerator, objek utk jelajahi objek, low levelnya, interfacenya
-enumerable, wrapper dari IEnumerator, biar bisa traverse objeknya scr mandiri
+an iterator is a method, property, or indexer that produces an enumerator
+
+enumerator, the cursor atau objek utk jelajahi objek, low levelnya, interfacenya
+enumerable, the sequence, wrapper dari IEnumerator, biar bisa traverse objeknya scr mandiri
 
 foreach, high levelnya
 
@@ -119,6 +121,8 @@ nullable ga define operator, jadinya ada operator lifting di btsnya
 bisa mix nullable sama engga
 
 ex: sering pas connect dg database
+
+While a standard int requires 4 bytes, an int? requires 8 bytes. The System.Nullable<int> struct contains an int (4 bytes) and a bool (1 byte). Due to memory alignment rules and CPU architecture padding (to ensure data is read in efficient chunks), the CLR pads the struct to 8 bytes.
 
 ### Operator Overloading
 
