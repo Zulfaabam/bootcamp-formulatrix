@@ -10,7 +10,7 @@ class hanya bisa inherit 1 to prevent diamond problem
 
 Delegates exist to provide a type-safe mechanism for treating methods as first-class objects. They allow methods to be assigned to variables, passed as arguments, and returned from other methods, which is essential for writing decoupled, functional, and event-driven code without the heavy boilerplate of interfaces.
 
-objek yg bisa manggil method 
+objek yg bisa manggil method
 nyimpen alamt memori dari method
 
 ex:
@@ -39,6 +39,7 @@ Under the hood, delegates are objects allocated on the Heap that inherit from Sy
 In delegates, return types are covariant (out), meaning a method can return a more derived (specific) type than the delegate signature defines. Parameters are contravariant (in), meaning a method can accept parameters that are less derived (more general) than what the delegate signature specifies.
 
 pake delegate kalo:
+
 - kalo single method interface
 - multicast capability
 - multiple implementation by subscriber
@@ -60,16 +61,16 @@ Think of an event exactly like a C# property: where a property encapsulates a pr
 byk dipake di pembuatan desktop app, winform dll
 
 For a class that exposes dozens of events (e.g., a complex UI control) where most events remain unsubscribed, what architecture pattern can you implement to optimize memory allocation, rather than having dozens of null delegate backing fields?
+
 - You can implement "Sparse Events". Instead of relying on the compiler to generate individual private backing fields for every event, you explicitly implement the event accessors (add and remove) and store only the active delegates in a centralized collection, such as a Dictionary<string, Delegate>. This drastically reduces the memory footprint per instance.
 
 The event keyword adds a layer of encapsulation. Without it, an outside class could directly invoke the delegate, overwrite all existing subscribers by using the = operator, or set the delegate to null. The event keyword ensures that external subscribers can only add (+=) or remove (-=) themselves, preventing interference with other subscribers.
-
 
 ### try Statements and Exceptions
 
 try catch block
 
-try 
+try
 catch -> handle error, exceptions
 finally -> always excute, cleanup code
 
@@ -80,6 +81,7 @@ ex: bikin global handling di web api
 exception paling specific di awal catch, general di akhir
 
 constraint
+
 - when filter
 
 file itu unmanage resources, gaada GC nya
@@ -111,7 +113,7 @@ foreach, high levelnya
 
 int? x = null //implicit
 
-btsnya ? adalah struct Nullable, wrappernya 
+btsnya ? adalah struct Nullable, wrappernya
 
 int? x = 5;
 int y = (int)x; // Explicit conversion from int? to int
@@ -129,3 +131,11 @@ While a standard int requires 4 bytes, an int? requires 8 bytes. The System.Null
 buat bikin custom operator dalam class atau struct, not best practice tho
 
 hampir semua operator bisa dioverload
+
+## Framework Fundamentals
+
+### String and Text Handling: Working with Character Data
+
+char: a single unicode character, 16 bit value
+
+string: immutable (unchangeable) sequences of characters. Replace, Substring returns a new string
