@@ -136,6 +136,121 @@ hampir semua operator bisa dioverload
 
 ### String and Text Handling: Working with Character Data
 
-char: a single unicode character, 16 bit value
+char: a single unicode character, 16 bit value, encoding UTF-16, bisa diubah ke UTF-8 for performance
 
-string: immutable (unchangeable) sequences of characters. Replace, Substring returns a new string
+string: immutable (unchangeable) sequences of characters. Replace, Substring returns a new string. 
+- bisa pake string builder for performance
+- string bisa null, karna ref type
+- can be accessed by index
+- implement IEnumerable
+- can be searched with built-in methods
+- can be manipulated with methods
+- split, join
+- interpolation
+- can be compared equality and order
+- string builder: mutable string for performance
+- 
+
+### Dates and Times
+
+- value type, masuk dlm struct
+Because these are structs (value types), they are allocated on the stack or inline within objects, which avoids heap allocation and garbage collection overhead; consequently, they are not intrinsically nullable.
+They are immutable structs, meaning their values cannot change after they are created.
+Under the hood, they operate on a high-precision 100 nanosecond (ns) resolution.
+This resolution is tracked via a long representing "ticks", where each tick equals 100ns.
+- operator arithmetic dah di overload jadi mudah calculate time
+- default value TimeSpan.Zero
+- DateTime and DateTimeOffset, utk tanggalan, offset yg ada +- utcnya
+- dah banyak methods
+- formatter and parser
+- kalo null pake nullablenya
+- start .net 6 bisa get dateonly & timeonly
+
+TimeSpan represents an interval of time or duration.
+DateTime and DateTimeOffset represent specific points in time.
+DateTimeOffset specifically solves absolute time mapping by storing explicit offsets from UTC.
+
+### Formatting and Parsing
+
+- format: object to string
+- parsing: string to object
+- format provider for more control, pake IFormattable
+- bisa bikin format provider sendiri ICustomFormatter
+
+### Other Conversion Mechanisms
+
+- ada Convert class selain ToString() dan Parse()
+
+### Working with Numbers
+
+- BigInt
+- Half for performance, cant use operator, +-65500
+- Complex for imaginer number
+- Random, random number generators, dibilang pseudo random karna ada seednya (rangenya), best practicenya satu random di 1 project
+- true randomnese pake Cryptographic
+- BitOperations
+
+### Enums in .NET
+
+- type unification
+- provide static method
+- can be casted, explicit
+- can be looped
+
+### Equality Comparison
+
+- class perbandingan by ref
+
+### Utility Classes
+
+- Environment class, local machinenya
+- Process class
+- Console class
+- AppContext class, informasi program yg kita jalani
+
+## Collections
+
+### Enumeration
+
+- IEnumerator and IEnumerable
+- kpn pake non generic: kalo type unification, kyk any, hrs ada boxing unboxing
+- yield return pas pake enumerator
+
+### Array Class
+
+- base class dari tiap array yg kita bikin
+- contiguous memory, di heap letaknya sebelhan, fixed size
+- kalo ngerubah size, btsnya ngecopy array lama trs bikin array baru
+- storagenya: kalo value type ya ttp di heap tpi isinya value, kalo ref type ya alamat memorinya
+- buat clone pake Clone(), shallow copy
+
+### Lists, Queues, Stacks, Dictionary, and Sets
+
+- Dictionary: collection <key, value> pair
+- List: array yg dynamic sized
+- LinkedList: Doubly Linked Lists
+- Queue: antrian, FIFO
+- Stack: tumpukan, LIFO
+- BitArray: isinya false true
+- HashSet: unique item, no duplicate
+- SortedSet: HashSet yg urut
+
+### Customizable Collections and Proxies
+
+- class ngecustom collection
+- KeyedCollection for Dictionary
+- ReadOnlyCollection: biar collection read only biar safety
+
+### Immutable Collection
+
+- collection yg gabisa diubah, for concurrency and multithread biar akses ke datanya ga acak2 atau beda2
+- easier debug, reduced bugs
+- jeleknya dia lemot
+- Builder for efficiency
+
+### Plugging in Equality and Order
+
+- bikin custom comparer, tanpa ngutak atik classnya
+- pake IEqualityComparer
+- versi builtin nya: StringComparer
+- bandingin struktural: IStructuralEquatable dan IStructuralComparable
