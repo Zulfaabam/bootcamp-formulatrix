@@ -62,7 +62,7 @@ direction TB
 	    Ship currentShip
     }
 
-    class BattleShips {
+    class GameController {
 	    -List<.Player> _players
 	    -List<.Board> _boards
 	    -Player _currentPlayer
@@ -84,11 +84,10 @@ direction TB
     Player *-- "1" Board
     Board *-- "0.." Ship
     Ship -- "1.." Coordinate
-    BattleShips -- "2" Player
+    GameController -- "2" Player
     ShipName --o Ship
     ShipFacing --o Ship
-    AttackResult --o BattleShips
+    AttackResult --o GameController
     Cell --* Board
 
 ```
-
