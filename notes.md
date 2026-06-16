@@ -138,7 +138,8 @@ hampir semua operator bisa dioverload
 
 char: a single unicode character, 16 bit value, encoding UTF-16, bisa diubah ke UTF-8 for performance
 
-string: immutable (unchangeable) sequences of characters. Replace, Substring returns a new string. 
+string: immutable (unchangeable) sequences of characters. Replace, Substring returns a new string.
+
 - bisa pake string builder for performance
 - string bisa null, karna ref type
 - can be accessed by index
@@ -149,15 +150,15 @@ string: immutable (unchangeable) sequences of characters. Replace, Substring ret
 - interpolation
 - can be compared equality and order
 - string builder: mutable string for performance
-- 
+-
 
 ### Dates and Times
 
 - value type, masuk dlm struct
-Because these are structs (value types), they are allocated on the stack or inline within objects, which avoids heap allocation and garbage collection overhead; consequently, they are not intrinsically nullable.
-They are immutable structs, meaning their values cannot change after they are created.
-Under the hood, they operate on a high-precision 100 nanosecond (ns) resolution.
-This resolution is tracked via a long representing "ticks", where each tick equals 100ns.
+  Because these are structs (value types), they are allocated on the stack or inline within objects, which avoids heap allocation and garbage collection overhead; consequently, they are not intrinsically nullable.
+  They are immutable structs, meaning their values cannot change after they are created.
+  Under the hood, they operate on a high-precision 100 nanosecond (ns) resolution.
+  This resolution is tracked via a long representing "ticks", where each tick equals 100ns.
 - operator arithmetic dah di overload jadi mudah calculate time
 - default value TimeSpan.Zero
 - DateTime and DateTimeOffset, utk tanggalan, offset yg ada +- utcnya
