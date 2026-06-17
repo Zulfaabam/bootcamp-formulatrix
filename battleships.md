@@ -10,29 +10,24 @@ direction TB
     }
 
     class Ship {
-        +ShipName name
-        +int size
-        -List~Coordinate~ _coordinates
-        -List~Coordinate~ _hitPositions
-        +Ship(ShipName name)
-        +GetBlocksRemaining() List~Coordinate~
-        +RecordHit(Coordinate hitCoordinate) void
+        +ShipType Type
+        +int Size
+        +ShipOrientation Orientation
+        +Ship(ShipType type)
         +IsSunk() bool
     }
 
-    class ShipName {
+    class ShipOrientation {
+        Vertical
+        Horizontal
+    }
+
+    class ShipType {
         Destroyer
         Submarine
         Cruiser
         Battleship
         Carrier
-    }
-
-    class ShipFacing {
-        ToLeft
-        ToRight
-        ToTop
-        ToBottom
     }
 
     class VerticalLabel {
@@ -52,19 +47,15 @@ direction TB
     }
 
     class Player {
-        -Board _board
-        -string _name
-        +Player(string name, Board board)
-        +GetBoard() Board
+        +string Name
+        +Player(string name)
     }
 
     class Board {
-        -Cell~int,int~ _cell
-        -int _size
-        -List~Ship~ _ships
-        +Board(int size, List~Ship~ ships)
+        -Cell[,] _cell
+        +int Size
+        +Board(int size)
         +GetSize() int
-        +IsAllShipsSunk() bool
     }
 
     class AttackResult {
@@ -74,39 +65,46 @@ direction TB
     }
 
     class Cell {
-        bool isHit
-        Ship currentShip
+        -Ship? _currentShip
+        +bool IsHit
+        +Coordinate Coordinate
+        +AttackResult? AttackResult
     }
 
     class GameController {
         -List~Player~ _players
         -List~Board~ _boards
-        -Player _currentPlayer
-        +int turn
-        +Action~Player~ OnTurnChanged
+        -Dictionary<.Player, Board> _playerBoard
+        -Dictionary<.Board, List<.Ship>> _shipsOnBoard
+        +int Turn
+        +Player CurrentPlayer
         +Action~Player~ OnGameEnded
         +GameController(List~Player~ players, List~Board~ Boards)
-        +PlaceShip(Ship ship, Board board, Coordinate startCoordinate, ShipFacing facing) void
         +StartGame() void
-        +SwitchTurn() void
-        +Attack(Player player, Board targetBoard, Coordinate coordinate) void
-        +ReceiveAttack(Board receiverBoard, Coordinate coordinate) AttackResult
-        +GetCoordinate(VerticalLabel verticalLabel, HorizontalLabel horizontalLabel) Coordinate
+        -PlaceShip(Player player, Ship ship, Coordinate startCoordinate, Coordinate endCoordinate) void
+        -SwitchTurn() void
+        -Attack(Player player, Board targetBoard, Coordinate coordinate) void
+        -ReceiveAttack(Board receiverBoard, Coordinate coordinate) AttackResult
+        -GetCoordinate(VerticalLabel verticalLabel, HorizontalLabel horizontalLabel) Coordinate
+        -IsAllShipsOnBoardSunk(Board, board) bool
         +CheckWinner() Player
     }
 
-    <<Enum>> ShipName
-    <<Enum>> ShipFacing
+    <<Enum>> ShipType
     <<Enum>> AttackResult
     <<Enum>> VerticalLabel
     <<Enum>> HorizontalLabel
+    <<Enum>> ShipOrientation
 
     Player *-- "1" Board
     Board *-- "0.." Ship
     Ship -- "1.." Coordinate
-    GameController -- "2" Player
-    ShipName --o Ship
-    ShipFacing --o GameController
+    GameController <.. "2" Player
+    GameController <.. Board
+    GameController <.. Ship
+    ShipType --o Ship
+    ShipOrientation --o Ship
     AttackResult --o GameController
+    AttackResult --o Cell
     Cell --* Board
 ```
