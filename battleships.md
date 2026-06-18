@@ -7,7 +7,6 @@ direction TB
     class ShipDetail {
         Type: ShipType
         Size: int
-        Orientation: ShipOrientation
     }
 
     class Coordinate {
@@ -18,16 +17,10 @@ direction TB
     class Ship {
         +ShipType Type
         +int Size
-        +ShipOrientation Orientation
         +int Hits
         +Ship(ShipType type)
         +GetShipDetail() ShipDetail
         +IsSunk() bool
-    }
-
-    class ShipOrientation {
-        Vertical
-        Horizontal
     }
 
     class ShipType {
@@ -104,13 +97,12 @@ direction TB
         -ValidateAttack(Board board,Coordinate coordinate) bool
         -ValidateShipPlacement(Board board,Ship ship, Coordinate startCoordinate,Coordinate endCoordinate) bool
     }
-    
+
 
     <<Enum>> ShipType
     <<Enum>> AttackResult
     <<Enum>> VerticalLabel
     <<Enum>> HorizontalLabel
-    <<Enum>> ShipOrientation
 
     Player *-- "1" Board
     Board *-- "0.." Ship
@@ -120,7 +112,6 @@ direction TB
     GameController <.. Ship
     ShipDetail --o Ship
     ShipType --o Ship
-    ShipOrientation --o Ship
     AttackResult --o GameController
     AttackResult --o Cell
     Cell --* Board
