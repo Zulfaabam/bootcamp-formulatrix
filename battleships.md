@@ -4,6 +4,12 @@
 
 classDiagram
 direction TB
+    class ShipDetail {
+        Type: ShipType
+        Size: int
+        Orientation: ShipOrientation
+    }
+
     class Coordinate {
         X: int
         Y: int
@@ -13,7 +19,9 @@ direction TB
         +ShipType Type
         +int Size
         +ShipOrientation Orientation
+        +int Hits
         +Ship(ShipType type)
+        +GetShipDetail() ShipDetail
         +IsSunk() bool
     }
 
@@ -65,10 +73,10 @@ direction TB
     }
 
     class Cell {
-        -Ship? _currentShip
+        +Ship? CurrentShip
         +bool IsHit
         +Coordinate Coordinate
-        +AttackResult? AttackResult
+        +AttackResult? ReceivedAttackResult
     }
 
     class GameController {
@@ -76,19 +84,27 @@ direction TB
         -List~Board~ _boards
         -Dictionary<.Player, Board> _playerBoard
         -Dictionary<.Board, List<.Ship>> _shipsOnBoard
-        +int Turn
-        +Player CurrentPlayer
-        +Action~Player~ OnGameEnded
+        +int Turn : readonly
+        +Player CurrentPlayer : readonly
+        +Action~Player~? OnGameEnded
         +GameController(List~Player~ players, List~Board~ Boards)
         +StartGame() void
-        -PlaceShip(Player player, Ship ship, Coordinate startCoordinate, Coordinate endCoordinate) void
-        -SwitchTurn() void
-        -Attack(Player player, Board targetBoard, Coordinate coordinate) void
-        -ReceiveAttack(Board receiverBoard, Coordinate coordinate) AttackResult
-        -GetCoordinate(VerticalLabel verticalLabel, HorizontalLabel horizontalLabel) Coordinate
-        -IsAllShipsOnBoardSunk(Board, board) bool
+        +PlaceShip(Player player, Ship ship, Coordinate startCoordinate, Coordinate endCoordinate) bool
+        +Attack(Player player, Board targetBoard, Coordinate coordinate) void
         +CheckWinner() Player
+        -SwitchTurn() void
+        -ReceiveAttack(Board receiverBoard, Coordinate coordinate) AttackResult
+        -IsAllShipsOnBoardSunk(Board board) bool
+        -IsPlayerTurn(Player player) bool
+        -GetBoardOfPlayer(Player player) Board
+        -GetOpponent(Player player) Player
+        -GetCoordinate(VerticalLabel verticalLabel, HorizontalLabel horizontalLabel) Coordinate
+        -GetShipAtCoordinate(Board board,Coordinate coordinate) Ship?
+        -RecordShipHit(Ship ship) void
+        -ValidateAttack(Board board,Coordinate coordinate) bool
+        -ValidateShipPlacement(Board board,Ship ship, Coordinate startCoordinate,Coordinate endCoordinate) bool
     }
+    
 
     <<Enum>> ShipType
     <<Enum>> AttackResult
@@ -98,10 +114,11 @@ direction TB
 
     Player *-- "1" Board
     Board *-- "0.." Ship
-    Ship -- "1.." Coordinate
+    Cell *-- Coordinate
     GameController <.. "2" Player
     GameController <.. Board
     GameController <.. Ship
+    ShipDetail --o Ship
     ShipType --o Ship
     ShipOrientation --o Ship
     AttackResult --o GameController
