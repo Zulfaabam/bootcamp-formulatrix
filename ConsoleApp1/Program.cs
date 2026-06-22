@@ -22,6 +22,12 @@ intToStringWithRules.RemoveRule(9);
 
 intToStringWithRules.Print(63);
 
+string rulesString = intToStringWithRules.GetRulesString();
+Console.WriteLine($"======= Rules =======");
+Console.WriteLine(rulesString);
+Console.WriteLine($"======= Rules =======");
+Console.WriteLine();
+
 class IntToStringWithRules
 {
   public Dictionary<int, string> rules = new()
@@ -67,6 +73,18 @@ class IntToStringWithRules
       Console.WriteLine($"Rule for divisor {divisor} does not exist. Use AddRule to add it.");
       Console.WriteLine();
     }
+  }
+
+  public string GetRulesString()
+  {
+    List<string> rulesList = new();
+
+    foreach (KeyValuePair<int, string> rule in rules)
+    {
+      rulesList.Add($"{rule.Key}: {rule.Value}");
+    }
+
+    return string.Join(", ", rulesList);
   }
 
   public string Print(int n)
