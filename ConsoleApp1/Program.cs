@@ -1,47 +1,104 @@
 ﻿// Logic Exercise
 
-PrintFooBar(15);
-PrintFooBar(21);
-PrintFooBar(35);
-PrintFooBar(105);
-PrintFooBar(63);
+IntToStringWithRules intToStringWithRules = new IntToStringWithRules();
 
-string PrintFooBar(int n)
+intToStringWithRules.Print(15);
+
+intToStringWithRules.AddRule(13, "qux");
+
+intToStringWithRules.Print(26);
+
+intToStringWithRules.Print(21);
+
+intToStringWithRules.Print(35);
+
+intToStringWithRules.AddRule(17, "saya akan lawan!");
+
+intToStringWithRules.ChangeRule(5, "heehee");
+
+intToStringWithRules.Print(105);
+
+intToStringWithRules.RemoveRule(9);
+
+intToStringWithRules.Print(63);
+
+class IntToStringWithRules
 {
-    List<string> output = new List<string> {};
+  public Dictionary<int, string> rules = new()
+  {
+    {3, "foo"},
+    {4, "baz"},
+    {5, "bar"},
+    {7, "jazz"},
+    {9, "huzz"},
+  };
 
-    Dictionary<int, string> divisions = new()
+  public IntToStringWithRules() {}
+
+  public void AddRule(int divisor, string output)
+  {
+    if (!rules.ContainsKey(divisor))
     {
-      {3, "foo"},
-      {4, "baz"},
-      {5, "bar"},
-      {7, "jazz"},
-      {9, "huzz"},
-    };
-
-    for (int i = 1; i <= n; i++)
-    {
-        string res = "";
-
-        foreach( KeyValuePair<int, string> div in divisions )
-        {
-          if( i % div.Key == 0 )
-          {
-            res += div.Value;
-          }
-        }
-
-        if (string.IsNullOrEmpty(res)) res += i.ToString();
-
-        output.Add(res);
+      rules[divisor] = output;
+    } else {
+      Console.WriteLine($"Rule for divisor {divisor} already exists. Use ChangeRule to modify it.");
+      Console.WriteLine();
     }
+  }
 
-    string outputStr = string.Join(", ", output);
+  public void RemoveRule(int divisor)
+  {
+    if (!rules.ContainsKey(divisor))
+    {
+      Console.WriteLine($"Rule for divisor {divisor} does not exist.");
+      Console.WriteLine();
+      return;
+    }
+    
+    rules.Remove(divisor);
+  }
 
-    Console.WriteLine($"======= {n} =======");
-    Console.WriteLine(outputStr);
-    Console.WriteLine($"======= {n} =======");
-    Console.WriteLine();
+  public void ChangeRule(int divisor, string output)
+  {
+    if (rules.ContainsKey(divisor))
+    {
+      rules[divisor] = output;
+    } else {
+      Console.WriteLine($"Rule for divisor {divisor} does not exist. Use AddRule to add it.");
+      Console.WriteLine();
+    }
+  }
 
-    return outputStr;
+  public string Print(int n)
+  {
+      List<string> output = new();
+
+      for (int i = 1; i <= n; i++)
+      {
+          string res = "";
+
+          foreach( KeyValuePair<int, string> rule in rules )
+          {
+            if( i % rule.Key == 0 )
+            {
+              res += rule.Value;
+            }
+          }
+
+          if (string.IsNullOrEmpty(res)) res += i.ToString();
+
+          output.Add(res);
+      }
+
+      string outputStr = string.Join(", ", output);
+
+      Console.WriteLine($"======= Print {n} =======");
+      Console.WriteLine(outputStr);
+      Console.WriteLine($"======= Print {n} =======");
+      Console.WriteLine();
+
+      return outputStr;
+  }
 }
+
+
