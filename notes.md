@@ -255,3 +255,108 @@ DateTimeOffset specifically solves absolute time mapping by storing explicit off
 - pake IEqualityComparer
 - versi builtin nya: StringComparer
 - bandingin struktural: IStructuralEquatable dan IStructuralComparable
+
+## Disposal & Garbage Collection
+
+Objek yg dimanage: new() yg diinstantiate
+
+ada yg ga dimanage: http
+
+ada 2 tipe:
+- managed resource -> Object
+- unmanaged resource -> DB connection, HTTP, file handling, stream
+
+### IDisposable, Dispose, and Close
+
+nyediain 1 method Dispose() utk cleanup unmanaged resource
+
+`using` statement, btsnya ada try finally block
+
+syarat:
+- disposalnya irreversible
+- idempotent disposal, kalo trigger berulang ga masalah
+- ownershp and chained disposal, 
+
+Close() and Stop(), bisa diopen kembali, use case di DB connection
+Stop di timer atau http listener
+
+kapan utk dispose? if in doubt, dispose
+
+jangan dispose:
+- when you dont own the object
+- kalo bakal ada unwanted actions
+- unnecessary by design, adds complexity
+
+di dispose itu:
+- ngeclear reference
+- unsubs from Events supaya ga OutOfMemoryException
+- ngeset IsDisposed flag
+- clear event handlers
+- clear sensitive data (kartu kredit dll)
+
+### Automatic Garbage Collection
+
+might trigger GC:
+- available memory
+- Amount of memory allocation
+- time since last collection
+
+dibagi jadi 3 gen:
+- gen 0, newly allocated object, paling sering,
+- gen 1, yg lwt dari gen 0 naik ke gen 1, jarang2
+- gen 2, yg survice gen 1 ke gen 2, objeknya yg long lived, di atas 100ms
+
+short lived object is quicker to cleanup than long lived
+
+### Finalizers
+
+last resort cleanup, ditrigger sblm GC jalan
+
+`~Test()`
+
+- gaboleh public or static
+
+
+cara kerja:
+- pas GC jalan bakal identify, misahin
+- segregation
+- sblm gc jalan, finalizers akan jalan
+
+use case finalizers utk last resort dispose
+
+bukan best practice utk dipakai kecuali emg butuh dan dg byk aturan
+
+### How GC Works
+
+pake generational collection agar optimize
+
+### Managed Memory Leaks
+
+- event handlers
+- timer
+
+ada profiling tools utk mantau memorynya
+
+### Weak References
+
+bisa bikin object agar bisa mudah utk diclean GC
+
+use case: 
+- utk ngetrack object
+- caching
+
+## Diagnostics and Code Contracts
+
+### Conditional Compilation
+
+use case:
+- pake namespace tertentu dan pgn ganti2, kyk env di dev staging or prod
+
+### Debug and Trace Classes
+
+utk logging
+
+debug di debug build
+trace di debug dan release build
+
+### Assertions
