@@ -316,7 +316,6 @@ last resort cleanup, ditrigger sblm GC jalan
 
 - gaboleh public or static
 
-
 cara kerja:
 - pas GC jalan bakal identify, misahin
 - segregation
@@ -325,6 +324,8 @@ cara kerja:
 use case finalizers utk last resort dispose
 
 bukan best practice utk dipakai kecuali emg butuh dan dg byk aturan
+
+resurrection: ketika finalizer ngemodify suatu objek yg udah mati menjadi reachable lagi, cth: nambah reference ke obj tsb dari static field atau living obj.
 
 ### How GC Works
 
