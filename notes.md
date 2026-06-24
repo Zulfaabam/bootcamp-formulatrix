@@ -361,3 +361,54 @@ debug di debug build
 trace di debug dan release build
 
 ### Assertions
+
+## Concurrency and Asynchrony
+
+concurrent: handle task banyak barengan
+bisa di achieve dengan:
+- parallelism -> byk worker, di pemrograman pake multi-threading
+  use case: di tmpt yg CPU-bound operations kyk rendering
+- asynchronous -> ngerjain byk hal tanpa nunggu satu2
+  use case: input-output bound operations berkaitan dgn external resource
+
+thread, unit terkecil dari sebuah program
+
+tujuan concurrent adlh responsiveness
+
+### Threading
+
+blocking: thread lain gabisa lanjut, Sleep() Join()
+spinning: continuous spinning is generally highly wasteful of CPU time, as the OS believes the thread is doing important work and allocates resources
+
+shared state
+
+race condition, lbh dari satu thread ngakses shared state secara barengan
+
+lock mechanism, bisa jadi deadlock
+
+pake Task class drpd Thread class
+
+foreground threads: keep app alive
+backround threads: kalo gaada foregroundnya maka akan terminate
+
+thread starvation bisa terjadi karna ngeset thread priority scr manual
+
+thread pool, pake Task class
+
+### Multi Threading
+
+instantiate thread scr barengan
+
+bts lock itu pake Monitor class
+
+mutex, mutual exclusion
+
+semaphore, buat ngelimit
+
+autoresetevent, otomatis ngesetnya
+
+di C# yg baru pake Task class
+
+### Tasks
+
+
