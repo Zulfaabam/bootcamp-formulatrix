@@ -411,4 +411,38 @@ di C# yg baru pake Task class
 
 ### Tasks
 
+## Streams and I/O
 
+### Streams and I/O
+
+sequence that flows in and out
+
+to connect with external resources like files
+
+unmanaged resource, jadi harus didispose
+gak thread safe
+
+akses file:
+kalo lgsg path maka kebuat di path
+kalo nama file aja masuk ke bin dotnetnya
+
+pipestream -> interaksi 2 mesin
+
+buffer -> utk preload
+
+### File Handling
+
+utk ngutak atik file di local machine
+
+.FLush() buat ngebersihin buffer biar ga nyantol
+
+## Serialization and Assemblies
+
+### Serialization
+
+serialization -> dari objek ke string, file
+deserialization -> string ke objek
+
+### Assemblies
+
+kode yg udah ter-compile
