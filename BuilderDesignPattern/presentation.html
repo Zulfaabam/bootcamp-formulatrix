@@ -1,0 +1,1434 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Builder Design Pattern - Presentation</title>
+
+    <link
+      href="https://api.fontshare.com/v2/css?f[]=space-grotesk@400,500,600,700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --bg-primary: #fdfae7;
+        --primary: #1e2bfa;
+        --text-primary: #111111;
+        --text-muted: #6b6b6b;
+        --text-light: #9a9a9a;
+        --accent-light: rgba(30, 43, 250, 0.08);
+        --accent-medium: rgba(30, 43, 250, 0.15);
+        --border: rgba(30, 43, 250, 0.2);
+        --card-bg: rgba(30, 43, 250, 0.04);
+        --positive: #059669;
+        --negative: #dc2626;
+
+        --font-display: "Space Grotesk", sans-serif;
+        --font-body: "Inter", sans-serif;
+
+        --slide-bg: var(--bg-primary);
+      }
+
+      /* viewport-base.css */
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: var(--slide-bg);
+      }
+
+      .deck-viewport {
+        position: fixed;
+        inset: 0;
+        overflow: hidden;
+        background: var(--slide-bg);
+      }
+
+      .deck-stage {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        transform-origin: 0 0;
+        background: var(--slide-bg);
+        color: var(--text-muted);
+        font-family: var(--font-body);
+        font-weight: 400;
+        font-size: 26px;
+        line-height: 1.6;
+      }
+
+      .slide {
+        position: absolute;
+        inset: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        display: block;
+        visibility: hidden;
+        opacity: 0;
+        pointer-events: none;
+        background: var(--slide-bg);
+        transition:
+          opacity 0.5s ease,
+          transform 0.5s ease;
+        transform: translateX(40px);
+      }
+
+      .slide.prev {
+        transform: translateX(-40px);
+      }
+
+      .slide.active,
+      .slide.visible {
+        visibility: visible;
+        opacity: 1;
+        pointer-events: auto;
+        z-index: 1;
+        transform: translateX(0);
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          transition-duration: 0.2s !important;
+        }
+      }
+
+      /* Shared Element Classes */
+      h1 {
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 110px;
+        color: var(--text-primary);
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+        margin: 0;
+      }
+
+      h2 {
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: 64px;
+        color: var(--text-primary);
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+        margin: 0 0 40px 0;
+      }
+
+      h3 {
+        font-family: var(--font-display);
+        font-weight: 500;
+        font-size: 36px;
+        color: var(--text-primary);
+        letter-spacing: -0.02em;
+        line-height: 1.3;
+        margin: 0 0 20px 0;
+      }
+
+      .slide-content {
+        padding: 80px 100px 140px 100px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .slide-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 60px;
+      }
+
+      .eyebrow {
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: 24px;
+        color: var(--primary);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .eyebrow::before {
+        content: "";
+        display: block;
+        width: 40px;
+        height: 2px;
+        background: var(--primary);
+      }
+
+      .tag-pill {
+        background: var(--accent-light);
+        color: var(--primary);
+        font-family: var(--font-display);
+        font-weight: 500;
+        font-size: 20px;
+        padding: 12px 32px;
+        border-radius: 100px;
+      }
+
+      .card-tinted {
+        background: var(--card-bg);
+        border: 1.5px solid var(--border);
+        border-radius: 20px;
+        padding: 40px 50px;
+      }
+
+      .card-tinted-sm {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 30px;
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+      }
+
+      .grid-3 {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 40px;
+      }
+
+      .reveal {
+        opacity: 0;
+        transform: translateY(30px);
+        transition:
+          opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+          transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      .slide.visible .reveal {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .reveal:nth-child(1) {
+        transition-delay: 0.1s;
+      }
+
+      .reveal:nth-child(2) {
+        transition-delay: 0.2s;
+      }
+
+      .reveal:nth-child(3) {
+        transition-delay: 0.3s;
+      }
+
+      .reveal:nth-child(4) {
+        transition-delay: 0.4s;
+      }
+
+      .reveal:nth-child(5) {
+        transition-delay: 0.5s;
+      }
+
+      .reveal:nth-child(6) {
+        transition-delay: 0.6s;
+      }
+
+      /* Persistent Chrome */
+      .slide-counter {
+        position: absolute;
+        bottom: 40px;
+        left: 60px;
+        font-family: var(--font-display);
+        font-weight: 500;
+        font-size: 20px;
+        color: var(--text-muted);
+      }
+
+      .nav-buttons {
+        position: absolute;
+        bottom: 40px;
+        right: 60px;
+        display: flex;
+        gap: 16px;
+        z-index: 1000;
+      }
+
+      .nav-btn {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        border: 1.5px solid var(--border);
+        background: var(--bg-primary);
+        color: var(--primary);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        transition:
+          background 0.2s,
+          color 0.2s;
+      }
+
+      .nav-btn:hover {
+        background: var(--primary);
+        color: var(--bg-primary);
+      }
+
+      .nav-btn:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+
+      .progress-bar-container {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 6px;
+        z-index: 1000;
+      }
+
+      .progress-bar {
+        height: 100%;
+        background: var(--primary);
+        width: 0%;
+        transition: width 0.4s ease;
+      }
+
+      /* Specific Slide Styles */
+      /* Cover */
+      .cover-layout {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+        height: 100%;
+        padding-left: 140px;
+        z-index: 10;
+        position: relative;
+      }
+
+      .accent-line {
+        width: 100px;
+        height: 6px;
+        background: var(--primary);
+        border-radius: 3px;
+        margin-bottom: 40px;
+      }
+
+      .cover-decoration {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 600px;
+        height: 100%;
+        background: var(--accent-light);
+        clip-path: polygon(30% 0, 100% 0, 100% 100%, 0% 100%);
+        z-index: 1;
+      }
+
+      .cover-dots {
+        position: absolute;
+        top: 120px;
+        right: 120px;
+        width: 240px;
+        height: 240px;
+        background-image: radial-gradient(var(--primary) 20%, transparent 20%);
+        background-size: 40px 40px;
+        opacity: 0.25;
+        z-index: 2;
+      }
+
+      .closing-circles {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        border: 1.5px solid var(--border);
+        border-radius: 50%;
+        z-index: 1;
+      }
+
+      .circle-outer {
+        width: 800px;
+        height: 800px;
+        opacity: 0.3;
+      }
+
+      .circle-inner {
+        width: 560px;
+        height: 560px;
+        opacity: 0.5;
+      }
+
+      /* List */
+      ul {
+        padding-left: 32px;
+      }
+
+      li {
+        margin-bottom: 20px;
+      }
+
+      li::marker {
+        color: var(--primary);
+        font-family: var(--font-display);
+        font-weight: 700;
+      }
+
+      /* Code Blocks */
+      pre {
+        font-family: "Space Grotesk", monospace;
+        background: var(--card-bg);
+        border: 1.5px solid var(--border);
+        padding: 32px;
+        border-radius: 12px;
+        font-size: 26px;
+        color: var(--text-primary);
+        overflow-x: auto;
+        margin-top: 20px;
+        line-height: 1.5;
+        font-weight: 500;
+      }
+
+      code {
+        color: var(--primary);
+      }
+
+      .comment {
+        color: var(--text-light);
+      }
+
+      /* Class Diagram CSS Box */
+      .diagram {
+        position: relative;
+        width: 100%;
+        height: 500px;
+        margin-top: 40px;
+      }
+
+      .uml-class {
+        position: absolute;
+        width: 440px;
+        background: var(--bg-primary);
+        border: 1.5px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 12px 32px var(--card-bg);
+        z-index: 5;
+      }
+
+      .uml-header {
+        background: var(--accent-light);
+        padding: 16px;
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: 24px;
+        color: var(--text-primary);
+        text-align: center;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .uml-body {
+        padding: 24px;
+        font-family: var(--font-body);
+        font-size: 20px;
+        color: var(--text-muted);
+        line-height: 1.6;
+      }
+
+      .inline-metric {
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 48px;
+        color: var(--primary);
+        line-height: 1;
+        margin-bottom: 8px;
+        display: block;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="deck-viewport">
+      <main class="deck-stage" id="deckStage">
+        <!-- Slide 1: Cover -->
+        <section class="slide">
+          <div class="cover-decoration"></div>
+          <div class="cover-dots"></div>
+          <div class="cover-layout">
+            <div class="accent-line reveal"></div>
+            <h1 class="reveal">Builder Pattern</h1>
+            <p
+              class="reveal"
+              style="font-size: 40px; margin-top: 20px; max-width: 900px"
+            >
+              Constructing complex objects step by step with precision.
+            </p>
+          </div>
+        </section>
+
+        <!-- Slide 2: Agenda -->
+        <section class="slide">
+          <div class="slide-content">
+            <div class="slide-header reveal">
+              <div class="eyebrow">Overview</div>
+              <div class="tag-pill">Agenda</div>
+            </div>
+            <h2 class="reveal">Presentation Outline</h2>
+            <div class="grid-3 reveal">
+              <div class="card-tinted">
+                <span class="inline-metric">01</span>
+                <h3 style="margin-top: 10px">The Definition</h3>
+                <p>What is the Builder design pattern?</p>
+              </div>
+              <div class="card-tinted">
+                <span class="inline-metric">02</span>
+                <h3 style="margin-top: 10px">Why Use It?</h3>
+                <p>The core problem it solves in code.</p>
+              </div>
+              <div class="card-tinted">
+                <span class="inline-metric">03</span>
+                <h3 style="margin-top: 10px">Class Diagram</h3>
+                <p>Architectural structure in C#.</p>
+              </div>
+              <div class="card-tinted">
+                <span class="inline-metric">04</span>
+                <h3 style="margin-top: 10px">Before & After</h3>
+                <p>Real-world C# implementation.</p>
+              </div>
+              <div class="card-tinted">
+                <span class="inline-metric">05</span>
+                <h3 style="margin-top: 10px">Pros & Cons</h3>
+                <p>Trade-offs to consider.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Slide 3: Definition -->
+        <section class="slide">
+          <div class="slide-content">
+            <div class="slide-header reveal">
+              <div class="eyebrow">The Definition</div>
+              <div class="tag-pill">01</div>
+            </div>
+            <h2 class="reveal">What is the Builder Pattern?</h2>
+            <div class="reveal">
+              <div class="card-tinted" style="padding: 60px">
+                <p
+                  style="
+                    font-size: 36px;
+                    line-height: 1.5;
+                    color: var(--text-primary);
+                    margin-bottom: 30px;
+                  "
+                >
+                  <strong>Builder</strong> is a creational design pattern that
+                  lets you construct complex objects step by step.
+                </p>
+                <p style="font-size: 30px; line-height: 1.5">
+                  It extracts the object construction code out of its own class
+                  and moves it to separate objects called <em>builders</em>.
+                  This pattern allows you to produce different types and
+                  representations of an object using the same construction code.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Slide 4: Conceptual Analogy -->
+        <section class="slide">
+          <div class="slide-content">
+            <div class="slide-header reveal">
+              <div class="eyebrow">Analogy</div>
+              <div class="tag-pill">01</div>
+            </div>
+            <h2 class="reveal">The Builder Concept</h2>
+            <div
+              class="reveal"
+              style="
+                flex: 1;
+                display: flex;
+                justify-content: center;
+                align-items: start;
+              "
+            >
+              <img
+                src="assets/builder-example-with-text.png"
+                style="
+                  max-height: 80%;
+                  max-width: 80%;
+                  border-radius: 20px;
+                  border: 1.5px solid var(--border);
+                  box-shadow: 0 12px 32px var(--card-bg);
+                "
+              />
+            </div>
+          </div>
+        </section>
+
+        <!-- Slide 5: Why Use It -->
+        <section class="slide">
+          <div class="slide-content">
+            <div class="slide-header reveal">
+              <div class="eyebrow">Why Use It?</div>
+              <div class="tag-pill">02</div>
+            </div>
+            <h2 class="reveal">The Telescoping Constructor Problem</h2>
+            <div class="grid-2 reveal" style="flex: 1">
+              <div class="card-tinted">
+                <h3 style="color: var(--negative)">The Problem</h3>
+                <ul>
+                  <li>Massive constructors with dozens of parameters.</li>
+                  <li>
+                    Most parameters are unused, leading to ugly code like
+                    <code>new House(4, 2, true, false, null)</code>.
+                  </li>
+                  <li>
+                    Extremely difficult to remember the order of parameters.
+                  </li>
+                  <li>
+                    Creating subclasses for every possible configuration causes
+                    an explosion of classes.
+                  </li>
+                </ul>
+              </div>
+              <div class="card-tinted">
+                <h3 style="color: var(--positive)">The Solution</h3>
+                <ul>
+                  <li>
+                    Extract construction logic into dedicated
+                    <strong>Builder</strong> classes.
+                  </li>
+                  <li>
+                    Construct objects dynamically using clean, fluent
+                    interfaces.
+                  </li>
+                  <li>Only execute the specific steps you actually need.</li>
+                  <li>
+                    Defer final instantiation until the entire configuration is
+                    ready.
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Slide 5: Class Diagram -->
+        <section class="slide">
+          <div class="slide-content">
+            <div class="slide-header reveal">
+              <div class="eyebrow">Architecture</div>
+              <div class="tag-pill">03</div>
+            </div>
+            <h2 class="reveal">C# Class Diagram</h2>
+            <div class="reveal diagram">
+              <svg
+                width="100%"
+                height="100%"
+                style="position: absolute; top: 0; left: 0; z-index: 1"
+              >
+                <defs>
+                  <marker
+                    id="arrow"
+                    viewBox="0 0 10 10"
+                    refX="8"
+                    refY="5"
+                    markerWidth="6"
+                    markerHeight="6"
+                    orient="auto"
+                  >
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--primary)" />
+                  </marker>
+                  <marker
+                    id="triangle"
+                    viewBox="0 0 10 10"
+                    refX="10"
+                    refY="5"
+                    markerWidth="8"
+                    markerHeight="8"
+                    orient="auto"
+                  >
+                    <path
+                      d="M 0 0 L 10 5 L 0 10 z"
+                      fill="var(--bg-primary)"
+                      stroke="var(--primary)"
+                      stroke-width="1.5"
+                    />
+                  </marker>
+                </defs>
+                <!-- Director to Builder (Aggregation) -->
+                <line
+                  x1="560"
+                  y1="90"
+                  x2="1140"
+                  y2="90"
+                  stroke="var(--primary)"
+                  stroke-width="3"
+                  marker-end="url(#arrow)"
+                />
+                <text
+                  x="790"
+                  y="70"
+                  fill="var(--primary)"
+                  font-family="Space Grotesk"
+                  font-weight="600"
+                  font-size="20"
+                >
+                  Uses
+                </text>
+
+                <!-- ConcreteBuilder to IBuilder (Realization) -->
+                <line
+                  x1="1360"
+                  y1="360"
+                  x2="1360"
+                  y2="200"
+                  stroke="var(--primary)"
+                  stroke-width="3"
+                  stroke-dasharray="12,12"
+                  marker-end="url(#triangle)"
+                />
+
+                <!-- ConcreteBuilder to Product (Dependency) -->
+                <line
+                  x1="1140"
+                  y1="440"
+                  x2="560"
+                  y2="440"
+                  stroke="var(--primary)"
+                  stroke-width="3"
+                  marker-end="url(#arrow)"
+                />
+                <text
+                  x="790"
+                  y="420"
+                  fill="var(--primary)"
+                  font-family="Space Grotesk"
+                  font-weight="600"
+                  font-size="20"
+                >
+                  Creates
+                </text>
+              </svg>
+
+              <!-- Director -->
+              <div class="uml-class" style="left: 120px; top: 20px">
+                <div class="uml-header">Director</div>
+                <div class="uml-body">
+                  - _builder: IBuilder
+                  <hr
+                    style="
+                      margin: 12px 0;
+                      border: none;
+                      border-top: 1px solid var(--border);
+                    "
+                  />
+                  + Construct()<br />
+                  + SetBuilder(IBuilder)
+                </div>
+              </div>
+
+              <!-- IBuilder -->
+              <div class="uml-class" style="left: 1140px; top: -60px">
+                <div class="uml-header">
+                  &lt;&lt;interface&gt;&gt;<br />IBuilder
+                </div>
+                <div class="uml-body">
+                  + BuildPartA()<br />
+                  + BuildPartB()<br />
+                  + BuildPartC()
+                </div>
+              </div>
+
+              <!-- ConcreteBuilder -->
+              <div class="uml-class" style="left: 1140px; top: 360px">
+                <div class="uml-header">ConcreteBuilder</div>
+                <div class="uml-body">
+                  - _result: Product
+                  <hr
+                    style="
+                      margin: 12px 0;
+                      border: none;
+                      border-top: 1px solid var(--border);
+                    "
+                  />
+                  + BuildPartA()<br />
+                  + BuildPartB()<br />
+                  + GetResult(): Product
+                </div>
+              </div>
+
+              <!-- Product -->
+              <div class="uml-class" style="left: 120px; top: 360px">
+                <div class="uml-header">Product</div>
+                <div class="uml-body">
+                  - _parts: List&lt;string&gt;
+                  <hr
+                    style="
+                      margin: 12px 0;
+                      border: none;
+                      border-top: 1px solid var(--border);
+                    "
+                  />
+                  + Add(part: string)<br />
+                  + ListParts()
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Slide 6: Before Code -->
+        <section class="slide">
+          <div class="slide-content">
+            <div class="slide-header reveal">
+              <div class="eyebrow">Before</div>
+              <div class="tag-pill">04</div>
+            </div>
+            <h2 class="reveal">The Anti-Pattern</h2>
+            <div class="reveal card-tinted" style="flex: 1">
+              <p style="margin-bottom: 20px">
+                Creating a complex object requires specifying every possible
+                detail in a massive constructor call, often passing many
+                <code>null</code> or <code>false</code> values which makes the
+                code brittle.
+              </p>
+              <pre><span class="comment">// Hard to read, easy to mess up parameter order, completely rigid.</span>
+Gundam heavyGundam = new Gundam(
+    "Heavy Sensor Head",       <span class="comment">// head</span>
+    "Heavy Armor Body",       <span class="comment">// body</span>
+    "Heavy Arms",       <span class="comment">// arms</span>
+    "Reinforced Legs",    <span class="comment">// legs</span>
+    "Heavy Shield",   <span class="comment">// shield</span>
+    "Bazooka",    <span class="comment">// weapon</span>
+    null    <span class="comment">// hasBackpack</span>
+);</pre>
+            </div>
+          </div>
+        </section>
+
+        <!-- Slide 7: After Code -->
+        <section class="slide">
+          <div class="slide-content">
+            <div class="slide-header reveal">
+              <div class="eyebrow">After</div>
+              <div class="tag-pill">04</div>
+            </div>
+            <h2 class="reveal">Fluent Builder Construction</h2>
+            <div class="reveal card-tinted" style="flex: 1">
+              <p style="margin-bottom: 20px">
+                We use a Builder to construct the house step-by-step. The code
+                is self-documenting and we only invoke the steps we actually
+                need.
+              </p>
+              <pre><span class="comment">// Clean, readable, and intent-revealing fluent interface.</span>
+HeavyBuilder gundamBuilder = new HeavyBuilder();
+Gundam heavyGundam = gundamBuilder
+    .BuildHead()
+    .BuildBody()
+    .BuildArms()
+    .BuildLegs()
+    .BuildBackpack()
+    .BuildWeapons()
+    .Build();</pre>
+            </div>
+          </div>
+        </section>
+
+        <!-- Slide X: Visualizing the Builds -->
+        <section class="slide">
+          <div class="slide-content">
+            <div class="slide-header reveal">
+              <div class="eyebrow">Visualizing the Goal</div>
+              <div class="tag-pill">04</div>
+            </div>
+            <h2 class="reveal">Three Unique Builds</h2>
+            <div
+              class="reveal"
+              style="
+                flex: 1;
+                display: flex;
+                justify-content: center;
+                align-items: start;
+              "
+            >
+              <img
+                src="assets/builder-example-three-builds.png"
+                style="
+                  max-height: 80%;
+                  max-width: 80%;
+                  border-radius: 20px;
+                  border: 1.5px solid var(--border);
+                  box-shadow: 0 12px 32px var(--card-bg);
+                "
+              />
+            </div>
+          </div>
+        </section>
+
+        <section class="slide">
+          <div class="slide-content">
+            <h2 class="reveal">Gundam Class Diagram</h2>
+            <div class="reveal diagram" style="height: 800px; margin-top: 40px">
+              <svg
+                width="100%"
+                height="100%"
+                style="position: absolute; top: 0; left: 0; z-index: 1"
+              >
+                <defs>
+                  <marker
+                    id="gundam-arrow"
+                    viewBox="0 0 10 10"
+                    refX="8"
+                    refY="5"
+                    markerWidth="6"
+                    markerHeight="6"
+                    orient="auto"
+                  >
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--primary)" />
+                  </marker>
+                  <marker
+                    id="gundam-triangle"
+                    viewBox="0 0 10 10"
+                    refX="10"
+                    refY="5"
+                    markerWidth="8"
+                    markerHeight="8"
+                    orient="auto"
+                  >
+                    <path
+                      d="M 0 0 L 10 5 L 0 10 z"
+                      fill="var(--bg-primary)"
+                      stroke="var(--primary)"
+                      stroke-width="1.5"
+                    />
+                  </marker>
+                </defs>
+
+                <!-- Director to IGundamBuilder (Uses) -->
+                <line
+                  x1="640"
+                  y1="90"
+                  x2="1000"
+                  y2="90"
+                  stroke="var(--primary)"
+                  stroke-width="3"
+                  marker-end="url(#gundam-arrow)"
+                />
+                <text
+                  x="790"
+                  y="75"
+                  fill="var(--primary)"
+                  font-family="Space Grotesk"
+                  font-weight="600"
+                  font-size="24"
+                >
+                  Uses
+                </text>
+
+                <!-- HeavyBuilder to IGundamBuilder (Implements) -->
+                <line
+                  x1="1220"
+                  y1="380"
+                  x2="1220"
+                  y2="320"
+                  stroke="var(--primary)"
+                  stroke-width="3"
+                  stroke-dasharray="12,12"
+                  marker-end="url(#gundam-triangle)"
+                />
+
+                <!-- HeavyBuilder to Gundam (Builds) -->
+                <line
+                  x1="1000"
+                  y1="540"
+                  x2="640"
+                  y2="540"
+                  stroke="var(--primary)"
+                  stroke-width="3"
+                  marker-end="url(#gundam-arrow)"
+                />
+                <text
+                  x="790"
+                  y="525"
+                  fill="var(--primary)"
+                  font-family="Space Grotesk"
+                  font-weight="600"
+                  font-size="24"
+                >
+                  Builds
+                </text>
+              </svg>
+
+              <!-- Director -->
+              <div
+                class="uml-class"
+                style="left: 200px; top: 0px; width: 440px"
+              >
+                <div class="uml-header">Director</div>
+                <div class="uml-body" style="font-size: 20px; padding: 24px">
+                  - builder: IGundamBuilder
+                  <hr
+                    style="
+                      margin: 12px 0;
+                      border: none;
+                      border-top: 1px solid var(--border);
+                    "
+                  />
+                  + BuildBaseModel()<br />
+                  + BuildFullFeaturedModel()
+                </div>
+              </div>
+
+              <!-- IGundamBuilder -->
+              <div
+                class="uml-class"
+                style="left: 1000px; top: -100px; width: 440px"
+              >
+                <div class="uml-header">
+                  &lt;&lt;interface&gt;&gt;<br />IGundamBuilder
+                </div>
+                <div class="uml-body" style="font-size: 20px; padding: 24px">
+                  + Reset()<br />
+                  + BuildHead()<br />
+                  + BuildBody()<br />
+                  + BuildArms()<br />
+                  + BuildLegs()<br />
+                  + BuildBackpack()<br />
+                  + BuildWeapons()<br />
+                  + GetGundam(): Gundam
+                </div>
+              </div>
+
+              <!-- HeavyBuilder -->
+              <div
+                class="uml-class"
+                style="left: 1000px; top: 380px; width: 440px"
+              >
+                <div class="uml-header">HeavyBuilder</div>
+                <div class="uml-body" style="font-size: 20px; padding: 24px">
+                  - gundam: Gundam
+                  <hr
+                    style="
+                      margin: 12px 0;
+                      border: none;
+                      border-top: 1px solid var(--border);
+                    "
+                  />
+                  + Reset()<br />
+                  + BuildHead()<br />
+                  + BuildBody()<br />
+                  + BuildArms()<br />
+                  + BuildLegs()<br />
+                  + BuildBackpack()<br />
+                  + BuildWeapons()<br />
+                  + GetGundam(): Gundam
+                </div>
+              </div>
+
+              <!-- Gundam -->
+              <div
+                class="uml-class"
+                style="left: 200px; top: 440px; width: 440px"
+              >
+                <div class="uml-header">Gundam</div>
+                <div class="uml-body" style="font-size: 20px; padding: 24px">
+                  - parts: List&lt;string&gt;
+                  <hr
+                    style="
+                      margin: 12px 0;
+                      border: none;
+                      border-top: 1px solid var(--border);
+                    "
+                  />
+                  + Add(part: string)<br />
+                  + ListParts(): string
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Slide 8: Implementation (Product & Interface) -->
+        <section class="slide">
+          <div class="slide-content">
+            <div class="slide-header reveal">
+              <div class="eyebrow">Implementation 1/5</div>
+              <div class="tag-pill">04</div>
+            </div>
+            <h2 class="reveal">Product</h2>
+            <div class="reveal card-tinted" style="flex: 1; padding: 24px">
+              <pre
+              ><span class="comment">// The complex product we want to build</span>
+public class Gundam
+{
+    private readonly List&lt;string&gt; _parts = new();
+
+    public void Add(string part) 
+    { 
+        _parts.Add(part); 
+    }
+
+    public string ListParts() 
+    { 
+        return "Gundam Parts:\n- " + string.Join("\n- ", _parts); 
+    }
+}
+            </div>
+          </div>
+        </section>
+
+        <section class="slide">
+          <div class="slide-content">
+            <div class="slide-header reveal">
+              <div class="eyebrow">Implementation 2/5</div>
+              <div class="tag-pill">04</div>
+            </div>
+            <h2 class="reveal">Interface</h2>
+            <div class="reveal card-tinted" style="flex: 1; padding: 24px">
+              <pre><span class="comment">// The builder interface specifying methods for creating the different parts</span>
+public interface IGundamBuilder
+{
+    void Reset();
+    void BuildHead();
+    void BuildBody();
+    void BuildArms();
+    void BuildLegs();
+    void BuildBackpack();
+    void BuildWeapons();
+    Gundam GetGundam();
+}</pre>
+            </div>
+          </div>
+        </section>
+
+        <!-- Slide 9: Implementation (Concrete Builder) -->
+        <section class="slide">
+          <div class="slide-content">
+            <div class="slide-header reveal">
+              <div class="eyebrow">Implementation 3/5</div>
+              <div class="tag-pill">04</div>
+            </div>
+            <h2 class="reveal">Concrete Builder</h2>
+            <div class="reveal card-tinted" style="flex: 1; padding: 24px">
+              <pre
+                style="
+                  font-size: 20px;
+                  padding: 24px;
+                  margin-top: 0;
+                  line-height: 1.4;
+                "
+              ><span class="comment">// Concrete builders implement steps defined in the interface</span>
+public class HeavyBuilder : IGundamBuilder
+{
+    private Gundam _gundam = new();
+
+    public void Reset() =&gt; _gundam = new Gundam();
+    public void BuildHead() =&gt; _gundam.Add("Heavy Sensor Head");
+    public void BuildBody() =&gt; _gundam.Add("Heavy Armor Body");
+    public void BuildArms() =&gt; _gundam.Add("Heavy Arms");
+    public void BuildLegs() =&gt; _gundam.Add("Reinforced Legs");
+    public void BuildBackpack() =&gt; _gundam.Add("Heavy Shield");
+    public void BuildWeapons() =&gt; _gundam.Add("Bazooka");
+
+    public Gundam GetGundam()
+    {
+        var result = _gundam;
+        Reset(); <span class="comment">// Builders should be ready to start producing another product</span>
+        return result;
+    }
+}</pre>
+            </div>
+          </div>
+        </section>
+
+        <!-- Slide 10: Implementation (Director & Usage) -->
+        <section class="slide">
+          <div class="slide-content">
+            <div class="slide-header reveal">
+              <div class="eyebrow">Implementation 4/5</div>
+              <div class="tag-pill">04</div>
+            </div>
+            <h2 class="reveal">Director</h2>
+            <div class="reveal card-tinted" style="flex: 1; padding: 24px">
+              <pre style="font-size: 20px;
+                  padding: 24px;
+                  margin-top: 0;
+                  line-height: 1.4;"><span class="comment">// The Director controls the order of the building steps</span>
+public class Director
+{
+    private IGundamBuilder _builder;
+    public IGundamBuilder Builder { set =&gt; _builder = value; }
+
+    public void BuildBaseModel() 
+    {
+        _builder.BuildHead(); 
+        _builder.BuildBody();
+        _builder.BuildArms(); 
+        _builder.BuildLegs();
+    }
+
+    public void BuildFullFeaturedModel()
+    {
+        BuildBaseModel();
+        _builder.BuildBackpack(); 
+        _builder.BuildWeapons();
+    }
+}</pre>
+            </div>
+          </div>
+        </section>
+
+        <section class="slide">
+          <div class="slide-content">
+            <div class="slide-header reveal">
+              <div class="eyebrow">Implementation 5/5</div>
+              <div class="tag-pill">04</div>
+            </div>
+            <h2 class="reveal">Usage</h2>
+            <div class="reveal card-tinted" style="flex: 1; padding: 24px">
+              <pre
+              ><span class="comment">// Client Code Usage</span>
+var director = new Director();
+var heavyBuilder = new HeavyBuilder();
+director.Builder = heavyBuilder;
+
+director.BuildFullFeaturedModel();
+var heavyGundam = heavyBuilder.GetGundam();
+Console.WriteLine(heavyGundam.ListParts());</pre>
+            </div>
+          </div>
+        </section>
+
+        <!-- Slide 11: Pros and Cons -->
+        <section class="slide">
+          <div class="slide-content">
+            <div class="slide-header reveal">
+              <div class="eyebrow">Trade-offs</div>
+              <div class="tag-pill">05</div>
+            </div>
+            <h2 class="reveal">Pros & Cons</h2>
+            <div class="grid-2 reveal">
+              <div
+                class="card-tinted"
+                style="border-top: 4px solid var(--positive)"
+              >
+                <h3 style="color: var(--positive)">Pros</h3>
+                <ul>
+                  <li>
+                    <strong>Step-by-step:</strong> Construct objects
+                    iteratively, defer construction steps, or run steps
+                    recursively.
+                  </li>
+                  <li>
+                    <strong>Reusability:</strong> Reuse the same construction
+                    code when building various representations of products.
+                  </li>
+                  <li>
+                    <strong>Single Responsibility:</strong> Isolate complex
+                    construction code from the business logic of the product.
+                  </li>
+                </ul>
+              </div>
+              <div
+                class="card-tinted"
+                style="border-top: 4px solid var(--negative)"
+              >
+                <h3 style="color: var(--negative)">Cons</h3>
+                <ul>
+                  <li>
+                    <strong>Complexity:</strong> The overall complexity of the
+                    code increases since the pattern requires creating multiple
+                    new classes (Builder, ConcreteBuilders, Director).
+                  </li>
+                  <li>
+                    <strong>Dependency:</strong> The client must be aware of the
+                    specific builder types if they aren't hidden behind a
+                    Director.
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Slide 9: Closing -->
+        <section class="slide">
+          <div class="closing-circles circle-outer"></div>
+          <div class="closing-circles circle-inner"></div>
+          <div
+            class="slide-content"
+            style="
+              align-items: center;
+              justify-content: center;
+              text-align: center;
+              position: relative;
+              z-index: 10;
+            "
+          >
+            <div
+              class="accent-line reveal"
+              style="margin: 0 auto 40px auto"
+            ></div>
+            <h1 class="reveal">Thank You</h1>
+            <p class="reveal" style="font-size: 32px; margin-top: 30px">
+              Questions?
+            </p>
+          </div>
+        </section>
+      </main>
+
+      <!-- Persistent Chrome -->
+      <div class="slide-counter" id="slideCounter">01 / 09</div>
+
+      <div class="nav-buttons">
+        <button class="nav-btn" id="prevBtn" title="Previous Slide">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </button>
+        <button class="nav-btn" id="nextBtn" title="Next Slide">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M9 18l6-6-6-6" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="progress-bar-container">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+    </div>
+
+    <script>
+      class SlidePresentation {
+        constructor() {
+          this.slides = document.querySelectorAll(".slide");
+          this.currentSlide = 0;
+          this.stage = document.getElementById("deckStage");
+          this.progressBar = document.getElementById("progressBar");
+          this.counterDisplay = document.getElementById("slideCounter");
+          this.prevBtn = document.getElementById("prevBtn");
+          this.nextBtn = document.getElementById("nextBtn");
+
+          this.setupStageScale();
+          this.setupKeyboardNav();
+          this.setupButtons();
+
+          // Show initial slide on next tick to allow CSS transitions to register
+          setTimeout(() => this.showSlide(0), 50);
+        }
+
+        setupStageScale() {
+          const scale = () => {
+            const factor = Math.min(
+              window.innerWidth / 1920,
+              window.innerHeight / 1080,
+            );
+            const x = (window.innerWidth - 1920 * factor) / 2;
+            const y = (window.innerHeight - 1080 * factor) / 2;
+            this.stage.style.transform = `translate(${x}px, ${y}px) scale(${factor})`;
+          };
+          scale();
+          window.addEventListener("resize", scale);
+        }
+
+        setupKeyboardNav() {
+          document.addEventListener("keydown", (e) => {
+            if (
+              e.key === "ArrowRight" ||
+              e.key === " " ||
+              e.key === "PageDown"
+            ) {
+              this.next();
+            } else if (e.key === "ArrowLeft" || e.key === "PageUp") {
+              this.prev();
+            } else if (e.key === "Home") {
+              this.showSlide(0);
+            } else if (e.key === "End") {
+              this.showSlide(this.slides.length - 1);
+            }
+          });
+        }
+
+        setupButtons() {
+          if (this.prevBtn)
+            this.prevBtn.addEventListener("click", () => this.prev());
+          if (this.nextBtn)
+            this.nextBtn.addEventListener("click", () => this.next());
+        }
+
+        next() {
+          this.showSlide(this.currentSlide + 1);
+        }
+        prev() {
+          this.showSlide(this.currentSlide - 1);
+        }
+
+        showSlide(index) {
+          if (index < 0 || index >= this.slides.length) return;
+          this.currentSlide = index;
+
+          this.slides.forEach((slide, i) => {
+            slide.classList.remove("active", "visible", "prev");
+            if (i === this.currentSlide) {
+              slide.classList.add("active", "visible");
+            } else if (i < this.currentSlide) {
+              slide.classList.add("prev");
+            }
+          });
+
+          if (this.progressBar) {
+            this.progressBar.style.width = `${((this.currentSlide + 1) / this.slides.length) * 100}%`;
+          }
+          if (this.counterDisplay) {
+            this.counterDisplay.textContent = `${(this.currentSlide + 1).toString().padStart(2, "0")} / ${this.slides.length.toString().padStart(2, "0")}`;
+          }
+
+          if (this.prevBtn) this.prevBtn.disabled = this.currentSlide === 0;
+          if (this.nextBtn)
+            this.nextBtn.disabled =
+              this.currentSlide === this.slides.length - 1;
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        window.presentation = new SlidePresentation();
+      });
+    </script>
+  </body>
+</html>
