@@ -11,4 +11,4 @@ This is a repository to store Abam's journey at Formulatrix Software Engineering
 ## Presentations
 
 - [Builder Design Pattern](BuilderDesignPattern\presentation.pdf)
-- [Debugging Techniques]()
+- [Debugging Techniques](DebuggingTechniques\debugging_presentation.pdf)
