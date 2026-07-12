@@ -1,0 +1,794 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3 Debugging Techniques</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400&family=Inter:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        /* Cartesian Colors */
+        --bg-primary: #ede8e0;
+        --bg-secondary: #e2dbd1;
+        --text-primary: #1a1a1a;
+        --text-secondary: #5a5a5a;
+        --accent: #8a8178;
+        --line: #b8b0a4;
+        --white-overlay: rgba(255, 255, 255, 0.3);
+
+        /* Semantic Colors */
+        --color-problem: #a85c5c;
+        --color-solution: #5c8a70;
+        /* Typography */
+        --font-display: 'Playfair Display', serif;
+        --font-body: 'Inter', sans-serif;
+
+        --duration-normal: 0.6s;
+        --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      /* Viewport Base CSS */
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: var(--bg-primary);
+      }
+      .deck-viewport {
+        position: fixed;
+        inset: 0;
+        overflow: hidden;
+        background: var(--bg-primary);
+      }
+      .deck-stage {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        transform-origin: 0 0;
+        background: var(--bg-primary);
+      }
+      .slide {
+        position: absolute;
+        inset: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        display: block;
+        visibility: hidden;
+        opacity: 0;
+        pointer-events: none;
+        background: transparent;
+      }
+      .slide.active,
+      .slide.visible {
+        visibility: visible;
+        opacity: 1;
+        pointer-events: auto;
+        z-index: 1;
+      }
+
+      /* Typography Styles */
+      h1,
+      h2,
+      h3,
+      .headline {
+        font-family: var(--font-display);
+        font-weight: 400;
+        color: var(--text-primary);
+        line-height: 1.1;
+        margin: 0;
+      }
+      h1 {
+        font-size: clamp(3.5rem, 7vw, 5.5rem);
+        margin-bottom: 2vh;
+      }
+      h2 {
+        font-size: clamp(2.5rem, 4.5vw, 4rem);
+        margin-bottom: 2vh;
+      }
+      h3 {
+        font-size: clamp(1.8rem, 3vw, 2.4rem);
+        margin-bottom: 1vh;
+      }
+
+      p,
+      li,
+      div {
+        font-family: var(--font-body);
+        font-weight: 400;
+        color: var(--text-secondary);
+        line-height: 1.6;
+        font-size: clamp(1.4rem, 1.8vw, 1.7rem);
+      }
+
+      .label {
+        font-family: var(--font-body);
+        font-weight: 500;
+        color: var(--accent);
+        font-size: 1.1rem;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        margin-bottom: 2vh;
+      }
+
+      .micro {
+        font-family: var(--font-body);
+        font-weight: 400;
+        color: var(--accent);
+        font-size: 1rem;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+      }
+
+      .numeral {
+        font-family: var(--font-display);
+        font-size: 2.2rem;
+        color: var(--accent);
+      }
+
+      /* Layout & Components */
+      .container {
+        padding: 4vh 4vw;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        box-sizing: border-box;
+      }
+
+      .center-layout {
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+      }
+
+      .split-layout {
+        display: flex;
+        flex-direction: row;
+        gap: 5vw;
+        height: 100%;
+        align-items: stretch;
+        padding-top: 10vh;
+      }
+
+      .col {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        padding: 4vh 2vw;
+        background: var(--white-overlay);
+        margin-bottom: 2vh;
+      }
+
+      .agenda-row {
+        padding: 2vh 0;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        align-items: center;
+        gap: 2vw;
+      }
+
+      pre {
+        background: var(--bg-secondary);
+        padding: 2vh 1.5vw;
+        border: 1px solid var(--line);
+        font-family: 'Inter', monospace;
+        font-size: 1.3rem;
+        overflow-x: auto;
+        color: var(--text-secondary);
+        line-height: 1.4;
+      }
+      code {
+        font-family: monospace;
+      }
+
+      /* Decorative Geometry */
+      .geo-circle {
+        position: absolute;
+        border: 1px solid var(--line);
+        border-radius: 50%;
+        opacity: 0.5;
+        z-index: 0;
+        pointer-events: none;
+      }
+
+      .geo-arc {
+        position: absolute;
+        border: 1px dashed var(--line);
+        border-radius: 50%;
+        opacity: 0.3;
+        z-index: 0;
+        pointer-events: none;
+      }
+
+      .geo-decoration {
+        position: absolute;
+        width: 40vw;
+        height: 40vw;
+        border: 1px solid var(--line);
+        border-radius: 50%;
+        z-index: 0;
+        pointer-events: none;
+      }
+      .geo-decoration::before {
+        content: '';
+        position: absolute;
+        top: 10%;
+        left: 10%;
+        right: 10%;
+        bottom: 10%;
+        border: 1px dashed var(--line);
+        border-radius: 50%;
+        opacity: 0.6;
+      }
+
+      .vertical-line {
+        position: absolute;
+        left: 8vw;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        background: var(--line);
+        opacity: 0.3;
+        z-index: 0;
+        pointer-events: none;
+      }
+
+      .horizontal-accent {
+        position: absolute;
+        left: 8vw;
+        bottom: 15vh;
+        width: 20vw;
+        height: 1px;
+        background: var(--text-primary);
+        z-index: 0;
+      }
+
+      .content-layer {
+        position: relative;
+        z-index: 10;
+      }
+
+      /* Chrome Navigation */
+      .nav-arrows {
+        position: absolute;
+        left: 4vw;
+        bottom: 4vh;
+        display: flex;
+        gap: 1vw;
+        z-index: 100;
+      }
+      .nav-arrow {
+        width: 40px;
+        height: 40px;
+        border: 1px solid var(--line);
+        background: transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: var(--accent);
+        transition: all 0.2s;
+      }
+      .nav-arrow:hover {
+        background: var(--text-primary);
+        color: var(--bg-primary);
+      }
+
+      .slide-counter {
+        position: absolute;
+        right: 4vw;
+        bottom: 4vh;
+        z-index: 100;
+      }
+
+      /* Animations */
+      .reveal {
+        opacity: 0;
+        transform: translateY(30px);
+        transition:
+          opacity var(--duration-normal) var(--ease-out-expo),
+          transform var(--duration-normal) var(--ease-out-expo);
+      }
+      .slide.visible .reveal {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .reveal:nth-child(1) {
+        transition-delay: 0.1s;
+      }
+      .reveal:nth-child(2) {
+        transition-delay: 0.2s;
+      }
+      .reveal:nth-child(3) {
+        transition-delay: 0.3s;
+      }
+      .reveal:nth-child(4) {
+        transition-delay: 0.4s;
+      }
+      .reveal:nth-child(5) {
+        transition-delay: 0.5s;
+      }
+
+      ul {
+        padding-left: 2vw;
+      }
+      li {
+        margin-bottom: 1vh;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="deck-viewport">
+      <main class="deck-stage" id="deckStage">
+        <!-- Slide 1: Cover -->
+        <section class="slide active">
+          <div class="vertical-line"></div>
+          <div class="geo-decoration" style="top: -10vw; right: -10vw"></div>
+          <div class="horizontal-accent"></div>
+
+          <div class="container center-layout content-layer">
+            <div class="label reveal">Three</div>
+            <h1 class="reveal">Debugging Techniques</h1>
+            <p class="reveal" style="max-width: 40vw">
+              A considered approach to resolving complex software defects
+              through system understanding, fresh perspectives, and fundamental
+              verifications.
+            </p>
+          </div>
+        </section>
+
+        <!-- Slide 2: Overview -->
+        <section class="slide">
+          <div class="vertical-line"></div>
+          <div
+            class="geo-circle"
+            style="width: 20vw; height: 20vw; left: 60vw; top: 20vh"
+          ></div>
+          <div class="container content-layer">
+            <div class="label reveal">Agenda</div>
+            <h2 class="reveal">Techniques for Resolution</h2>
+
+            <div class="reveal" style="width: 50vw; margin-top: 5vh">
+              <div class="agenda-row">
+                <span class="numeral">01</span>
+                <div>
+                  <h3 style="margin: 0; margin-bottom: 16px">
+                    Understand the System
+                  </h3>
+                  <p style="margin: 0">
+                    Reading the documentation and mapping the flow before
+                    changing code.
+                  </p>
+                </div>
+              </div>
+              <div class="agenda-row">
+                <span class="numeral">02</span>
+                <div>
+                  <h3 style="margin: 0; margin-bottom: 16px">
+                    Get a Fresh View
+                  </h3>
+                  <p style="margin: 0">
+                    Rubber duck debugging and walking away from the problem.
+                  </p>
+                </div>
+              </div>
+              <div class="agenda-row">
+                <span class="numeral">03</span>
+                <div>
+                  <h3 style="margin: 0; margin-bottom: 16px">Check the Plug</h3>
+                  <p style="margin: 0">
+                    Questioning fundamental assumptions and environmental setup.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Slide 3: Understand the System -->
+        <section class="slide">
+          <div class="vertical-line"></div>
+          <div class="container content-layer">
+            <div class="label reveal">01. Method</div>
+            <h2 class="reveal">Understand the System</h2>
+
+            <div class="split-layout">
+              <div class="col reveal">
+                <h3>Why use this technique?</h3>
+                <p>
+                  <span style="color: var(--color-problem); font-weight: 500">
+                    Guessing at the cause of a bug often leads to "voodoo
+                    programming" or masking the symptom rather than curing the
+                    disease.
+                  </span>
+                  <br />
+                  <br />
+                  <span style="color: var(--color-solution); font-weight: 500">
+                    By thoroughly understanding the system's architecture,
+                    dependencies, and intended behavior, you can deduce where
+                    the failure must be occurring.
+                  </span>
+                </p>
+              </div>
+              <div class="col reveal">
+                <p style="margin-bottom: 1vh">
+                  <strong>Before: Blindly guessing</strong>
+                </p>
+                <pre><code>// "I don't know why it's null, I'll just add a check"
+if (user != null && user.Profile != null) 
+{
+    RenderProfile(user);
+} 
+else 
+{
+    // silently fail
+}
+</code></pre>
+                <p style="margin-top: 3vh; margin-bottom: 1vh">
+                  <strong>After: Understanding the data flow</strong>
+                </p>
+                <pre><code>// Traced to the source: The API now returns an incomplete 
+// object during the 'Pending' state. We must handle the state.
+if (user.State == UserState.Pending) 
+{
+    RenderLoadingSpinner();
+} 
+else 
+{
+    RenderProfile(user);
+}
+</code></pre>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Slide 3b: Understand the System Pros & Cons -->
+        <section class="slide">
+          <div class="vertical-line"></div>
+          <div class="container center-layout content-layer">
+            <div class="label reveal">01. Method</div>
+            <h2 class="reveal">Pros & Cons</h2>
+            <div class="split-layout" style="padding-top: 5vh; max-width: 80vw">
+              <div class="col reveal card" style="text-align: left">
+                <h3>Pros</h3>
+                <ul>
+                  <li>
+                    Leads to robust, long-term fixes rather than brittle
+                    patches.
+                  </li>
+                  <li>
+                    Increases your domain knowledge and architectural grasp.
+                  </li>
+                </ul>
+              </div>
+              <div class="col reveal card" style="text-align: left">
+                <h3>Cons</h3>
+                <ul>
+                  <li>
+                    Can be time-consuming, especially in large legacy codebases.
+                  </li>
+                  <li>
+                    Requires up-to-date documentation, which is often lacking.
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Slide 4: Get a Fresh View -->
+        <section class="slide">
+          <div class="vertical-line"></div>
+          <div class="geo-decoration" style="bottom: -15vw; right: 10vw"></div>
+          <div class="container content-layer">
+            <div class="label reveal">02. Method</div>
+            <h2 class="reveal">Get a Fresh View</h2>
+
+            <div class="split-layout">
+              <div class="col reveal">
+                <h3>Why use this technique?</h3>
+                <p>
+                  <span style="color: var(--color-problem); font-weight: 500">
+                    Cognitive tunneling occurs when you stare at the same block
+                    of code for too long; your brain starts reading what you
+                    <em>meant</em>
+                    to write, rather than what is actually there.
+                  </span>
+                  <br />
+                  <br />
+                  <span style="color: var(--color-solution); font-weight: 500">
+                    Getting a fresh view—whether by explaining the problem to a
+                    colleague, talking to a rubber duck, or taking a walk—forces
+                    a reset in perspective.
+                  </span>
+                </p>
+              </div>
+              <div class="col reveal">
+                <div
+                  class="card"
+                  style="background: transparent; border: none; padding: 0"
+                >
+                  <h3
+                    style="
+                      margin-bottom: 2vh;
+                      font-size: 5rem;
+                      color: var(--line);
+                      line-height: 0.5;
+                    "
+                  >
+                    "
+                  </h3>
+                  <p style="font-size: 1.5rem; color: var(--text-primary)">
+                    A very simple but particularly useful technique is to
+                    explain the problem to someone else. You will often find the
+                    solution just in the act of explaining it.
+                  </p>
+                  <div class="micro" style="margin-top: 2vh">
+                    — The Pragmatic Programmer
+                  </div>
+                </div>
+
+                <p style="margin-top: 4vh; margin-bottom: 1vh">
+                  <strong>The "Rubber Duck" approach:</strong>
+                </p>
+                <pre><code>// You explain: "The loop processes each item..."
+for (int i = 0; i <= items.Count; i++) 
+{
+    // "...wait. 'less than OR EQUAL'. 
+    // That's an IndexOutOfRangeException. Found it."
+    ProcessItem(items[i]); 
+}
+</code></pre>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Slide 4b: Get a Fresh View Pros & Cons -->
+        <section class="slide">
+          <div class="vertical-line"></div>
+          <div class="container center-layout content-layer">
+            <div class="label reveal">02. Method</div>
+            <h2 class="reveal">Pros & Cons</h2>
+            <div class="split-layout" style="padding-top: 5vh; max-width: 80vw">
+              <div class="col reveal card" style="text-align: left">
+                <h3>Pros</h3>
+                <ul>
+                  <li>Extremely fast way to break out of circular thinking.</li>
+                  <li>
+                    Articulating the problem often reveals the solution
+                    immediately.
+                  </li>
+                </ul>
+              </div>
+              <div class="col reveal card" style="text-align: left">
+                <h3>Cons</h3>
+                <ul>
+                  <li>
+                    Requires stepping away, which feels counterproductive when
+                    rushed.
+                  </li>
+                  <li>
+                    Interrupts the flow state of teammates if you ask them for
+                    help.
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Slide 5: Check the Plug -->
+        <section class="slide">
+          <div class="vertical-line"></div>
+          <div class="container content-layer">
+            <div class="label reveal">03. Method</div>
+            <h2 class="reveal">Check the Plug</h2>
+
+            <div class="split-layout">
+              <div class="col reveal">
+                <h3>Why use this technique?</h3>
+                <p>
+                  <span style="color: var(--color-problem); font-weight: 500">
+                    Developers often waste hours diving into complex logic and
+                    debugging correct code when the real issue is a broken
+                    environment or an incorrect setup.
+                  </span>
+                  <br />
+                  <br />
+                  <span style="color: var(--color-solution); font-weight: 500">
+                    Before diving into complex logic, verify your fundamental
+                    assumptions. Is the system actually running? Are you
+                    connected to the right database? "Checking the plug"
+                    prevents these wasted hours.
+                  </span>
+                </p>
+              </div>
+              <div class="col reveal">
+                <p style="margin-bottom: 1vh">
+                  <strong>Before: Deep dive into complex logic</strong>
+                </p>
+                <pre><code>// Debugging for hours why the DB query fails
+var results = _dbContext.Users
+    .Where(u => u.IsActive)
+    .ToList();
+// "The query must be malformed. Let me rewrite the LINQ expression."
+</code></pre>
+                <p style="margin-top: 3vh; margin-bottom: 1vh">
+                  <strong>After: Checking fundamental assumptions</strong>
+                </p>
+                <pre><code>// 1. Verify connection first
+// ping database.local
+
+// 2. Check configuration variables
+Console.WriteLine(_config["ConnectionStrings:DefaultDB"]);
+// Output: null 
+// Ah. The appsettings.json connection string was missing.
+</code></pre>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Slide 5b: Check the Plug Pros & Cons -->
+        <section class="slide">
+          <div class="vertical-line"></div>
+          <div class="container center-layout content-layer">
+            <div class="label reveal">03. Method</div>
+            <h2 class="reveal">Pros & Cons</h2>
+            <div class="split-layout" style="padding-top: 5vh; max-width: 80vw">
+              <div class="col reveal card" style="text-align: left">
+                <h3>Pros</h3>
+                <ul>
+                  <li>
+                    Saves days of effort tracking down non-existent code bugs.
+                  </li>
+                  <li>
+                    Builds a habit of verifying the testing environment first.
+                  </li>
+                </ul>
+              </div>
+              <div class="col reveal card" style="text-align: left">
+                <h3>Cons</h3>
+                <ul>
+                  <li>
+                    Can feel insulting or too basic for experienced engineers.
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Slide 6: Summary -->
+        <section class="slide">
+          <div class="vertical-line"></div>
+          <div class="geo-ring" style="left: 25vw; top: 10vh"></div>
+          <div class="container center-layout content-layer">
+            <div class="label reveal">End</div>
+            <h2 class="reveal">Thank you!</h2>
+            <p class="reveal" style="max-width: 45vw">Any questions?</p>
+            <div
+              class="horizontal-accent"
+              style="
+                position: relative;
+                left: 0;
+                bottom: 0;
+                margin-top: 5vh;
+                width: 10vw;
+              "
+            ></div>
+          </div>
+        </section>
+      </main>
+
+      <!-- Chrome Navigation -->
+      <div class="nav-arrows">
+        <button class="nav-arrow" id="prevBtn">←</button>
+        <button class="nav-arrow" id="nextBtn">→</button>
+      </div>
+      <div class="slide-counter micro">
+        <span id="currentSlide">01</span>
+        /
+        <span id="totalSlides">06</span>
+      </div>
+    </div>
+
+    <script>
+      class SlidePresentation {
+        constructor() {
+          this.slides = document.querySelectorAll('.slide')
+          this.currentSlide = 0
+          this.stage = document.getElementById('deckStage')
+
+          this.setupStageScale()
+          this.setupKeyboardNav()
+          this.setupControls()
+          this.updateChrome()
+          this.showSlide(0)
+        }
+
+        setupStageScale() {
+          const scale = () => {
+            const factor = Math.min(
+              window.innerWidth / 1920,
+              window.innerHeight / 1080,
+            )
+            const x = (window.innerWidth - 1920 * factor) / 2
+            const y = (window.innerHeight - 1080 * factor) / 2
+            this.stage.style.transform = `translate(${x}px, ${y}px) scale(${factor})`
+          }
+          scale()
+          window.addEventListener('resize', scale)
+        }
+
+        setupKeyboardNav() {
+          document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+              this.next()
+            } else if (e.key === 'ArrowLeft') {
+              this.prev()
+            }
+          })
+        }
+
+        setupControls() {
+          document
+            .getElementById('prevBtn')
+            .addEventListener('click', () => this.prev())
+          document
+            .getElementById('nextBtn')
+            .addEventListener('click', () => this.next())
+        }
+
+        next() {
+          if (this.currentSlide < this.slides.length - 1) {
+            this.showSlide(this.currentSlide + 1)
+          }
+        }
+
+        prev() {
+          if (this.currentSlide > 0) {
+            this.showSlide(this.currentSlide - 1)
+          }
+        }
+
+        showSlide(index) {
+          this.currentSlide = index
+          this.slides.forEach((slide, i) => {
+            slide.classList.toggle('active', i === this.currentSlide)
+            slide.classList.toggle('visible', i === this.currentSlide)
+          })
+          this.updateChrome()
+        }
+
+        updateChrome() {
+          const currentStr = String(this.currentSlide + 1).padStart(2, '0')
+          const totalStr = String(this.slides.length).padStart(2, '0')
+          document.getElementById('currentSlide').innerText = currentStr
+          document.getElementById('totalSlides').innerText = totalStr
+        }
+      }
+
+      window.presentation = new SlidePresentation()
+    </script>
+  </body>
+</html>
